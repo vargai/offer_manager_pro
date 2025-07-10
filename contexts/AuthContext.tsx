@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../services/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -9,40 +10,33 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = 'offerManagerAuthToken';
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return !!localStorage.getItem(AUTH_STORAGE_KEY);
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  // Hardcoded credentials for demonstration
-  const MOCK_USER = 'admin';
-  const MOCK_PASS = 'password';
-
   useEffect(() => {
-    const token = localStorage.getItem(AUTH_STORAGE_KEY);
-    setIsAuthenticated(!!token);
+    // Check session with backend
+    apiFetch('/me')
+      .then(() => setIsAuthenticated(true))
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
   const login = async (user: string, pass: string): Promise<boolean> => {
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (user === MOCK_USER && pass === MOCK_PASS) {
-          localStorage.setItem(AUTH_STORAGE_KEY, 'mockToken');
-          setIsAuthenticated(true);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 500);
-    });
+    try {
+      await apiFetch('/login', {
+        method: 'POST',
+        body: JSON.stringify({ username: user, password: pass }),
+      });
+      setIsAuthenticated(true);
+      return true;
+    } catch {
+      setIsAuthenticated(false);
+      return false;
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+    apiFetch('/logout', { method: 'POST' });
     setIsAuthenticated(false);
     navigate('/login');
   };
