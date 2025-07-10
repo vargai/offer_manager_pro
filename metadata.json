@@ -1,0 +1,6 @@
+{
+  "name": "Offer Manager Pro",
+  "description": "An application to manage offer requests and submissions from companies. Users can create offer requests, send them to companies, and companies can submit their offers with attachments. Includes AI-powered assistance for drafting requests.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
